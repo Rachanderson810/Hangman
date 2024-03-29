@@ -1,0 +1,168 @@
+import random 
+import time
+
+class Hangman: 
+    def __init__(self, random_line):
+        #instance variables
+        self.hangman_word = random_line.lower() 
+        self.length_word=(len(self.hangman_word))-1
+        self.guesses=7
+        self.game_over=False
+        self.found_letters=0
+        self.guess_letters=[]
+        self.correct_word=[]
+        self.player_guess=""
+        self.correct_letter_enter=True
+        self.blanks ='*'* self.length_word
+        self.times_draw_board=0  #Count so we don't show guesses on the first round
+        self.times_draw_board_wrong=0 #Count to update pictures
+        self.hangman_pictures = ['''
+   +---+
+       |
+       |
+       |
+      ===''', '''
+   +---+
+   O   |
+       |
+       |
+      ===''', '''
+   +---+
+   O   |
+   |   |
+       |
+      ===''', '''
+   +---+
+   O   |
+  /|   |
+       |
+      ===''', '''
+   +---+
+   O   |
+  /|\  |
+       |
+      ===''', '''
+   +---+
+   O   |
+  /|\  |
+  /    |
+      ===''', '''
+   +---+
+   O   |
+  /|\  |
+  / \  |
+      ===''']
+ 
+    def draw_board(self):
+        
+        print(self.hangman_pictures[self.times_draw_board_wrong])
+        print("")
+        if (self.times_draw_board>0):
+            print("Guessed Letters")
+            for letter in self.guess_letters:
+                print(letter, end=' ')
+            print("")
+            print("")
+            print("Word")
+            print("")
+        for letter in self.blanks:
+            print(letter, end=' ')
+        print("")
+        print("")   
+        self.times_draw_board+=1
+        
+    
+    def clear_line(self):#Clear the board so it looks neater
+        LINE_UP = '\033[1A'
+        LINE_CLEAR = '\x1b[2K'
+        for i in range(20):
+            print(LINE_UP, end=LINE_CLEAR)    
+        
+    def check_letter(self):
+        if not self.player_guess.isalpha(): # check the input is a letter. Also checks an input has been made.
+            print("That is not a letter. Please try again.")
+            self.correct_letter_enter=False
+            
+        elif len(self.player_guess) > 1: # check the input is only one letter
+            print("That is more than one letter. Please try again.")
+            self.correct_letter_enter=False
+            
+        elif self.player_guess in self.guess_letters: # check it letter hasn't been guessed already
+            print("You have already guessed that letter. Please try again.")
+            self.correct_letter_enter=False
+          
+        else:#Passes the checks append into guess_letters
+            self.guess_letters.append(self.player_guess) 
+            self.correct_letter_enter=True
+            
+    def play(self):
+        self.draw_board()
+        
+        while True:
+            
+            self.player_guess=input("Please select a letter between A-Z: ")
+            self.player_guess = self.player_guess.lower() 
+            self.check_letter()
+            
+            if self.correct_letter_enter:
+                
+                #Check and see if guessed letter is in word
+                if self.player_guess in self.hangman_word:  #Guessed the letter
+                    print(" ")
+                    print("Your Guess was Right")
+                    #Add the letter to blanks
+                    for i in range(self.length_word):
+                        if self.hangman_word[i] in self.player_guess:
+                            self.blanks=self.blanks[:i]+self.hangman_word[i]+self.blanks[i+1:]
+       
+                
+                else: #Got the letter wrong
+                    self.guesses-=1
+                    self.times_draw_board_wrong+=1
+                    if(self.guesses==0):
+                        print("")
+                    else:
+                        print(" ")
+                        print("Try Again, you have "+str(self.guesses)+" guesses left.")
+                
+            
+            #Game over conditions, if you run out of guesses you loose 
+            #If you guess the word, you win
+            if self.guesses==0:
+                print("Game Over - You Loose")
+                print("The Word is: "+self.hangman_word)
+                break
+            for i in range(self.length_word):
+                if self.blanks[i] not in self.hangman_word:
+                    self.found_letters = False
+                    break
+                else:
+                    self.found_letters=True
+            
+            if self.found_letters:
+                    print("Game Over - You Win!!")
+                    print("The Word is: "+self.hangman_word)
+                    self.game_over=True
+                    break
+            
+            time.sleep(2)
+            self.clear_line()
+            self.draw_board()
+            
+            
+            
+            
+
+#Save name of file in a variable
+file_name = "words.txt"
+
+#Pick a random word
+with open(file_name) as fr: 
+    lines = fr.readlines() 
+    random_line = random.choice(lines) if lines else None 
+#print(random_line) 
+
+
+print("Welcome to Hangman!!")
+game=Hangman(random_line)
+game.play()
